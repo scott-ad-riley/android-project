@@ -19,7 +19,6 @@ public class Diver {
         return mDownwardSpeed;
     }
 
-
     private void updateAndCalculateSpeed(float timeframe) {
         if (mDownwardSpeed < 0) {
             // we need to work out what our new speed is, after the acceleration pulls it downwards
@@ -35,7 +34,6 @@ public class Diver {
         updateAndCalculateSpeed(timeframe);
         return distance;
     }
-
 
     public void boost(float speedBoost) {
         // speedBoost needs to come in as like 5 m/s or something (5.0f)

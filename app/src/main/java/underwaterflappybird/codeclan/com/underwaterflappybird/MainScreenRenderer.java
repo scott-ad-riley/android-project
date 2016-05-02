@@ -3,6 +3,7 @@ package underwaterflappybird.codeclan.com.underwaterflappybird;
 import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
+import android.os.SystemClock;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -12,7 +13,7 @@ import javax.microedition.khronos.opengles.GL10;
  */
 public class MainScreenRenderer implements GLSurfaceView.Renderer {
 
-    private Triangle mTriangle;
+    private DiverRenderer mDiver;
 
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
@@ -22,13 +23,18 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
 
     private float[] mRotationMatrix = new float[16];
 
+    private int mScreenHeight = 1196;
+    private int mScreenWidth = 800;
+
     public volatile float mAngle;
 
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-        mTriangle = new Triangle();
+        mDiver = new DiverRenderer(new Diver(0));
+        GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
 
+        // maybe setup his initial position in here?
     }
 
     public void onDrawFrame(GL10 unused) {
@@ -36,20 +42,28 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         // Redraw background color
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         // Set the camera position (View matrix)
+        // in the below method
+        // changing arg 2: breaks it
+        // changing arg 3: clips the left side of the viewport
+        // changing arg 4: clips the top of the viewport
+        // changing arg 5: seems to scale, going down to -2 makes it disappear, -4 makes it smaller
+        // changing arg 6: clips the viewport on either side (+ive is right, -ive is left)
+        // changing arg 7: same as above, top and bottom
+        // changing arg 8: nothing
+        // changing arg 9: some sort of rotation
+        // changing arg 10: nothing
+        // changing arg 11: nothing
         Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
 
         // Calculate the projection and view transformation
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
-//
-//        // Draw shape
-//        mTriangle.draw(mMVPMatrix);
-
 
         // Create a rotation transformation for the triangle
         // the following two lines generate an angle from the system clock
-//        long time = SystemClock.uptimeMillis() % 4000L;
-//        float angle = 0.090f * ((int) time);
-        Matrix.setRotateM(mRotationMatrix, 0, mAngle, 0, 0, -1.0f);
+        long time = SystemClock.uptimeMillis() % 4000L;
+        mAngle = 0.090f * ((int) time);
+
+        Matrix.setRotateM(mRotationMatrix, 0, 0, 0, 0, -1.0f);
 
         // Combine the rotation matrix with the projection and camera view
         // Note that the mMVPMatrix factor *must be first* in order
@@ -57,7 +71,7 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
 
         // Draw triangle
-        mTriangle.draw(scratch);
+        mDiver.draw(scratch);
     }
 
     public void onSurfaceChanged(GL10 unused, int width, int height) {
@@ -83,11 +97,4 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         return shader;
     }
 
-    public float getAngle() {
-        return mAngle;
-    }
-
-    public void setAngle(float angle) {
-        mAngle = angle;
-    }
 }

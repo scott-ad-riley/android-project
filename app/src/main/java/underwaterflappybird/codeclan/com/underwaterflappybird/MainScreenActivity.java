@@ -6,6 +6,7 @@ import android.opengl.GLSurfaceView;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.MotionEvent;
+import android.view.WindowManager;
 
 /**
  * Created by user on 02/05/2016.
@@ -37,7 +38,8 @@ public class MainScreenActivity extends Activity {
             setEGLContextClientVersion(2);
 
             mRenderer = new MainScreenRenderer();
-
+            // makes it full screen (removing the clock bar at the top)
+            getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
             setRenderer(mRenderer);
 //            setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
         }
@@ -58,6 +60,7 @@ public class MainScreenActivity extends Activity {
                     Log.d("WebGLLog", "getHeight():" + getHeight());
                     Log.d("WebGLLog", "getWidth():" + getWidth());
                     // so we can capture a click handler
+                    requestRender();
                 case MotionEvent.ACTION_MOVE:
 
                     float dx = x - mPreviousX;
@@ -73,10 +76,10 @@ public class MainScreenActivity extends Activity {
                         dy = dy * -1 ;
                     }
 
-                    mRenderer.setAngle(
-                            mRenderer.getAngle() +
-                                    ((dx + dy) * TOUCH_SCALE_FACTOR));
-                    requestRender();
+//                    mRenderer.setAngle(
+//                            mRenderer.getAngle() +
+//                                    ((dx + dy) * TOUCH_SCALE_FACTOR));
+//                    requestRender();
             }
 
             mPreviousX = x;
