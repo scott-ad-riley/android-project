@@ -4,6 +4,7 @@ import android.opengl.GLES20;
 import android.opengl.GLSurfaceView;
 import android.opengl.Matrix;
 import android.os.SystemClock;
+import android.util.Log;
 
 import javax.microedition.khronos.egl.EGLConfig;
 import javax.microedition.khronos.opengles.GL10;
@@ -14,6 +15,7 @@ import javax.microedition.khronos.opengles.GL10;
 public class MainScreenRenderer implements GLSurfaceView.Renderer {
 
     private DiverRenderer mDiver;
+    private CavernRenderer mCavern;
 
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
@@ -28,13 +30,14 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
 
     public volatile float mAngle;
 
+
+
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
         mDiver = new DiverRenderer(new Diver(0));
+        mCavern = new CavernRenderer(new Cavern(0.0f, 0.0f), 180);
         GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
-
-        // maybe setup his initial position in here?
     }
 
     public void onDrawFrame(GL10 unused) {
@@ -62,7 +65,6 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         // the following two lines generate an angle from the system clock
         long time = SystemClock.uptimeMillis() % 4000L;
         mAngle = 0.090f * ((int) time);
-
         Matrix.setRotateM(mRotationMatrix, 0, 0, 0, 0, -1.0f);
 
         // Combine the rotation matrix with the projection and camera view
@@ -72,6 +74,8 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
 
         // Draw triangle
         mDiver.draw(scratch);
+        // Draw Cavern
+        mCavern.draw(scratch);
     }
 
     public void onSurfaceChanged(GL10 unused, int width, int height) {
@@ -98,3 +102,12 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
     }
 
 }
+
+
+
+
+//    static float cavernCoords[] = {
+//            1.82f, 0.9f, 0.0f,
+//            1.65f, 0.9f, 0.0f,
+//            1.65f, 1.0f, 0.0f,
+//            1.82f, 1.0f, 0.0f };

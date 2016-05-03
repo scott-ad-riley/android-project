@@ -10,50 +10,36 @@ import java.nio.ShortBuffer;
 /**
  * Created by user on 02/05/2016.
  */
-public class DiverRenderer {
-
-    private Diver mDiver;
+public class CavernPaneRenderer {
 
     private FloatBuffer vertexBuffer;
     private ShortBuffer drawListBuffer;
 
     private final int mProgram;
 
-    private final String vertexShaderCode = "uniform mat4 uMVPMatrix;attribute vec4 vPosition;void main() {  gl_Position = uMVPMatrix * vPosition;}";
-
     private int mMVPMatrixHandle;
-
-    private final String fragmentShaderCode = "precision mediump float;uniform vec4 vColor;void main() { gl_FragColor = vColor;}";
 
     // number of coordinates per vertex in this array
     static final int COORDS_PER_VERTEX = 3;
 
-    static float defaultCoords[] = {
-            -0.05f,  0.05f, 0.0f,  // top right x, y, z
-            -0.05f, -0.05f, 0.0f,  // bottom right x, y, z
-            0.05f, -0.05f, 0.0f,  // bottom left x, y, z
-            0.05f,  0.05f, 0.0f };  // top left x, y, z
-
+    private float mPosition[];
     private short drawOrder[] = { 0, 1, 2, 0, 2, 3 }; // order to draw vertices
-
-
 
     private int mPositionHandle;
     private int mColorHandle;
 
-    private final int vertexCount = defaultCoords.length / COORDS_PER_VERTEX;
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
     // Set color with red, green, blue and alpha (opacity) values
     float color[] = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
 
-    public DiverRenderer(Diver diver) {
-
-
-        ByteBuffer bb = ByteBuffer.allocateDirect(defaultCoords.length * 4);
+    public CavernPaneRenderer(float[] position, int program) {
+        mPosition = position;
+        mProgram = program;
+        ByteBuffer bb = ByteBuffer.allocateDirect(mPosition.length * 4);
         bb.order(ByteOrder.nativeOrder());
         vertexBuffer = bb.asFloatBuffer();
-        vertexBuffer.put(defaultCoords);
+        vertexBuffer.put(mPosition);
         vertexBuffer.position(0);
 
         ByteBuffer dlb = ByteBuffer.allocateDirect(drawOrder.length * 2);
@@ -61,24 +47,6 @@ public class DiverRenderer {
         drawListBuffer = dlb.asShortBuffer();
         drawListBuffer.put(drawOrder);
         drawListBuffer.position(0);
-
-        int vertexShader = MainScreenRenderer.loadShader(GLES20.GL_VERTEX_SHADER,
-                vertexShaderCode);
-
-        int fragmentShader = MainScreenRenderer.loadShader(GLES20.GL_FRAGMENT_SHADER,
-                fragmentShaderCode);
-
-        // create empty OpenGL ES Program
-        mProgram = GLES20.glCreateProgram();
-
-        // add the vertex shader to program
-        GLES20.glAttachShader(mProgram, vertexShader);
-
-        // add the fragment shader to program
-        GLES20.glAttachShader(mProgram, fragmentShader);
-
-        // creates OpenGL ES program executables
-        GLES20.glLinkProgram(mProgram);
 
     }
 
@@ -109,10 +77,11 @@ public class DiverRenderer {
         // Pass the projection and view transformation to the shader
         GLES20.glUniformMatrix4fv(mMVPMatrixHandle, 1, false, mvpMatrix, 0);
         // Draw the triangle
-        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, vertexCount);
+        GLES20.glDrawArrays(GLES20.GL_TRIANGLE_FAN, 0, mPosition.length / COORDS_PER_VERTEX);
 
         // Disable vertex array
         GLES20.glDisableVertexAttribArray(mPositionHandle);
 
     }
+
 }
