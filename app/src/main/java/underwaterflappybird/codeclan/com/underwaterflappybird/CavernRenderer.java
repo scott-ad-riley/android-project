@@ -18,6 +18,9 @@ public class CavernRenderer {
 
     private final float[][] mPanes;
 
+//    private final ArrayList<float[]> mDiscarded;
+
+
     public CavernRenderer(Cavern cavern, int numberOfPanes) {
         mPanes  = new float[numberOfPanes][];
         int vertexShader = MainScreenRenderer.loadShader(GLES20.GL_VERTEX_SHADER,
@@ -44,9 +47,43 @@ public class CavernRenderer {
     }
 
     public void draw(float[] mvpMatrix) {
+
+
         for (int i=0; i < mPanes.length; i++) {
             CavernPaneRenderer cavernPaneRenderer = new CavernPaneRenderer(mPanes[i], mProgram);
             cavernPaneRenderer.draw(mvpMatrix);
+        }
+    }
+
+
+    private static void rotate(int[] arr, int order) {
+        if (arr == null || arr.length==0 || order < 0) {
+            throw new IllegalArgumentException("Illegal argument!");
+        }
+
+        if(order > arr.length){
+            order = order %arr.length;
+        }
+
+        //length of first part
+        int a = arr.length - order;
+
+        reverse(arr, 0, a-1);
+        reverse(arr, a, arr.length-1);
+        reverse(arr, 0, arr.length-1);
+
+    }
+
+    private static void reverse(int[] arr, int left, int right){
+        if(arr == null || arr.length == 1)
+            return;
+
+        while(left < right){
+            int temp = arr[left];
+            arr[left] = arr[right];
+            arr[right] = temp;
+            left++;
+            right--;
         }
     }
 

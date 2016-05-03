@@ -23,12 +23,15 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
     private final float[] mProjectionMatrix = new float[16];
     private final float[] mViewMatrix = new float[16];
 
+
     private float[] mRotationMatrix = new float[16];
+    private float[] mModelMatrix = new float[16];
+    private float[] mTranslationMatrix = new float[16];
 
     private int mScreenHeight = 1196;
     private int mScreenWidth = 800;
 
-    public volatile float mAngle;
+    public volatile float mTranslateValue;
 
 
 
@@ -42,13 +45,14 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
 
     public void onDrawFrame(GL10 unused) {
         float[] scratch = new float[16];
+        long time = SystemClock.uptimeMillis() % 4000L;
         // Redraw background color
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         // Set the camera position (View matrix)
         // in the below method
         // changing arg 2: breaks it
-        // changing arg 3: clips the left side of the viewport
-        // changing arg 4: clips the top of the viewport
+        // changing arg 3: rotates left side towards user and right side away
+        // changing arg 4: same as above but top and bottom
         // changing arg 5: seems to scale, going down to -2 makes it disappear, -4 makes it smaller
         // changing arg 6: clips the viewport on either side (+ive is right, -ive is left)
         // changing arg 7: same as above, top and bottom
@@ -57,15 +61,25 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         // changing arg 10: nothing
         // changing arg 11: nothing
         Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+//        Matrix.setIdentityM(mModelMatrix, 0);
+        // Create a translation matrix
+//        Matrix.setIdentityM(mTranslationMatrix, 0);
+        mTranslateValue = 0.00090f * ((int) time);
+//        Log.d("UFBLog", "" + mTranslateValue);
+        Matrix.translateM(mViewMatrix, 0, mTranslateValue, 0, 0); // translation to the left
+//        float[] mTempMatrix = mViewMatrix.clone();
+//        Matrix.multiplyMM(mViewMatrix, 0, mTranslationMatrix, 0, mTempMatrix, 0);
 
         // Calculate the projection and view transformation
         Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
 
         // Create a rotation transformation for the triangle
         // the following two lines generate an angle from the system clock
-        long time = SystemClock.uptimeMillis() % 4000L;
-        mAngle = 0.090f * ((int) time);
+
+//        mAngle = 0.090f * ((int) time);
         Matrix.setRotateM(mRotationMatrix, 0, 0, 0, 0, -1.0f);
+
+
 
         // Combine the rotation matrix with the projection and camera view
         // Note that the mMVPMatrix factor *must be first* in order
