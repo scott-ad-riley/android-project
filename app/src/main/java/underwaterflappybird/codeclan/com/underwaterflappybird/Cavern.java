@@ -23,26 +23,41 @@ public class Cavern {
         mCurrentTop = initialTop;
         mCurrentBottom = initialBottom;
         mCurrentXCoord = 1.82f; // this needs to be the leftmost value for the window
+        mMaxBottom = 50 / 100;
     }
 
-    public float[] generatePane() {
+    public float[][] generatePane() {
+        float[][] result = new float[2][12];
         int min = 1;
-        int max = 10;
-        float height = (float) randInt(min, max) / 10;
+        int max = 50;
+        float height = (float) randInt(min, max) / 100;
 
-        float[] result = new float[12];
-        result[0] = mCurrentXCoord; // bottom left X
-        result[1] = 1.0f - height; // bottom left Y
-        result[2] = 0.0f;
-        result[3] = mCurrentXCoord - mWidth; // bottom right X
-        result[4] = 1.0f - height; // bottom right Y
-        result[5] = 0.0f;
-        result[6] = mCurrentXCoord - mWidth; // top right X
-        result[7] = 1.0f; // top right Y
-        result[8] = 0.0f;
-        result[9] = mCurrentXCoord; // top left X
-        result[10] = 1.0f; // top left Y
-        result[11] = 0.0f;
+        result[0][0] = mCurrentXCoord; // bottom left X
+        result[0][1] = 1.0f - height; // bottom left Y
+        result[0][2] = 0.0f;
+        result[0][3] = mCurrentXCoord - mWidth; // bottom right X
+        result[0][4] = 1.0f - height; // bottom right Y
+        result[0][5] = 0.0f;
+        result[0][6] = mCurrentXCoord - mWidth; // top right X
+        result[0][7] = 1.0f; // top right Y
+        result[0][8] = 0.0f;
+        result[0][9] = mCurrentXCoord; // top left X
+        result[0][10] = 1.0f; // top left Y
+        result[0][11] = 0.0f;
+
+        result[1][0] = mCurrentXCoord; // bottom left X
+        result[1][1] = -1.0f; // bottom left Y
+        result[1][2] = 0.0f;
+        result[1][3] = mCurrentXCoord - mWidth; // bottom right X
+        result[1][4] = -1.0f; // bottom right Y
+        result[1][5] = 0.0f;
+        result[1][6] = mCurrentXCoord - mWidth; // top right X
+        result[1][7] = -1.0f + (mMaxBottom + height); // top right Y
+        result[1][8] = 0.0f;
+        result[1][9] = mCurrentXCoord; // top left X
+        result[1][10] = -1.0f + (mMaxBottom + height); // top left Y
+        result[1][11] = 0.0f;
+
         mCurrentXCoord -= mWidth;
 
         return result;

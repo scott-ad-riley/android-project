@@ -1,6 +1,7 @@
 package underwaterflappybird.codeclan.com.underwaterflappybird;
 
 import android.opengl.GLES20;
+import android.util.Log;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
@@ -28,32 +29,27 @@ public class DiverRenderer {
     // number of coordinates per vertex in this array
     static final int COORDS_PER_VERTEX = 3;
 
-    static float defaultCoords[] = {
-            -0.05f,  0.05f, 0.0f,  // top right x, y, z
-            -0.05f, -0.05f, 0.0f,  // bottom right x, y, z
-            0.05f, -0.05f, 0.0f,  // bottom left x, y, z
-            0.05f,  0.05f, 0.0f };  // top left x, y, z
-
     private short drawOrder[] = { 0, 1, 2, 0, 2, 3 }; // order to draw vertices
-
 
 
     private int mPositionHandle;
     private int mColorHandle;
 
-    private final int vertexCount = defaultCoords.length / COORDS_PER_VERTEX;
+    private final int vertexCount;
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
     // Set color with red, green, blue and alpha (opacity) values
     float color[] = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
 
-    public DiverRenderer(Diver diver) {
+    public DiverRenderer(Diver diver, float[] initialDiverPosition) {
 
+        mDiver = diver;
+        vertexCount = initialDiverPosition.length / COORDS_PER_VERTEX;
 
-        ByteBuffer bb = ByteBuffer.allocateDirect(defaultCoords.length * 4);
+        ByteBuffer bb = ByteBuffer.allocateDirect(initialDiverPosition.length * 4);
         bb.order(ByteOrder.nativeOrder());
         vertexBuffer = bb.asFloatBuffer();
-        vertexBuffer.put(defaultCoords);
+        vertexBuffer.put(initialDiverPosition);
         vertexBuffer.position(0);
 
         ByteBuffer dlb = ByteBuffer.allocateDirect(drawOrder.length * 2);
@@ -81,6 +77,15 @@ public class DiverRenderer {
         GLES20.glLinkProgram(mProgram);
 
     }
+
+    public float moveDiver(float timeframe) {
+        return mDiver.move(timeframe);
+    }
+
+    public void boostDiver(float boost) {
+        mDiver.boost(boost);
+    }
+
 
     public void draw(float[] mvpMatrix) {
         // Add program to OpenGL ES environment

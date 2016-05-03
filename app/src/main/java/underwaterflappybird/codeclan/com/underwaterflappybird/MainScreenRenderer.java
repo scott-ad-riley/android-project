@@ -19,33 +19,50 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
 
 
     // mMVPMatrix is an abbreviation for "Model View Projection Matrix"
-    private final float[] mMVPMatrix = new float[16];
+    private final float[] mMVPCavernMatrix = new float[16];
+    private final float[] mMVPDiverMatrix = new float[16];
     private final float[] mProjectionMatrix = new float[16];
-    private final float[] mViewMatrix = new float[16];
-
+    private final float[] mCavernViewMatrix = new float[16];
+    private final float[] mDiverViewMatrix= new float[16];
 
     private float[] mRotationMatrix = new float[16];
-    private float[] mModelMatrix = new float[16];
-    private float[] mTranslationMatrix = new float[16];
 
     private int mScreenHeight = 1196;
     private int mScreenWidth = 800;
 
     public volatile float mTranslateValue;
+    public float mInitialTime;
 
+    public float mLastFrameTime;
+
+    public float mDiverDistance;
+
+    float mInitialDiverCoords[] = {
+            -0.05f,  0.05f, 0.0f,  // top right x, y, z
+            -0.05f, -0.05f, 0.0f,  // bottom right x, y, z
+            0.05f, -0.05f, 0.0f,  // bottom left x, y, z
+            0.05f,  0.05f, 0.0f };  // top left x, y, z
 
 
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-        mDiver = new DiverRenderer(new Diver(0));
+        mDiver = new DiverRenderer(new Diver(0), mInitialDiverCoords);
         mCavern = new CavernRenderer(new Cavern(0.0f, 0.0f), 180);
         GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
+        mInitialTime = SystemClock.uptimeMillis();
+        mLastFrameTime = mInitialTime;
+        mDiverDistance = 0;
     }
 
     public void onDrawFrame(GL10 unused) {
-        float[] scratch = new float[16];
-        long time = SystemClock.uptimeMillis() % 4000L;
+        float[] scratchCavern = new float[16];
+        float[] scratchDiver = new float[16];
+        float newTime = SystemClock.uptimeMillis();
+        float frameTime = newTime - mLastFrameTime;
+        float totalTime = newTime - mInitialTime;
+//        Log.d("UFBLog1", "" + frameTime);
+//        Log.d("UFBLog2", "" + mLastFrameTime);
         // Redraw background color
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         // Set the camera position (View matrix)
@@ -60,18 +77,23 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         // changing arg 9: some sort of rotation
         // changing arg 10: nothing
         // changing arg 11: nothing
-        Matrix.setLookAtM(mViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
-//        Matrix.setIdentityM(mModelMatrix, 0);
-        // Create a translation matrix
-//        Matrix.setIdentityM(mTranslationMatrix, 0);
-        mTranslateValue = 0.00090f * ((int) time);
-//        Log.d("UFBLog", "" + mTranslateValue);
-        Matrix.translateM(mViewMatrix, 0, mTranslateValue, 0, 0); // translation to the left
-//        float[] mTempMatrix = mViewMatrix.clone();
-//        Matrix.multiplyMM(mViewMatrix, 0, mTranslationMatrix, 0, mTempMatrix, 0);
+        Matrix.setLookAtM(mCavernViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+        Matrix.setLookAtM(mDiverViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
+
+        mLastFrameTime = newTime;
+
+        mTranslateValue = 0.0006f * ((int) totalTime);
+        Matrix.translateM(mCavernViewMatrix, 0, mTranslateValue, 0, 0); // translation to the left
+        // I need to call .move() on my diver
+        float distance = mDiver.moveDiver(frameTime / 1000) / - 100;
+        mDiverDistance += distance;
+        // wdawdawd
+        Matrix.translateM(mDiverViewMatrix, 0, 0, mDiverDistance, 0); // translation downward
 
         // Calculate the projection and view transformation
-        Matrix.multiplyMM(mMVPMatrix, 0, mProjectionMatrix, 0, mViewMatrix, 0);
+        Matrix.multiplyMM(mMVPCavernMatrix, 0, mProjectionMatrix, 0, mCavernViewMatrix, 0);
+        Matrix.multiplyMM(mMVPDiverMatrix, 0, mProjectionMatrix, 0, mDiverViewMatrix, 0);
+
 
         // Create a rotation transformation for the triangle
         // the following two lines generate an angle from the system clock
@@ -84,12 +106,13 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         // Combine the rotation matrix with the projection and camera view
         // Note that the mMVPMatrix factor *must be first* in order
         // for the matrix multiplication product to be correct.
-        Matrix.multiplyMM(scratch, 0, mMVPMatrix, 0, mRotationMatrix, 0);
+        Matrix.multiplyMM(scratchCavern, 0, mMVPCavernMatrix, 0, mRotationMatrix, 0);
+        Matrix.multiplyMM(scratchDiver, 0, mMVPDiverMatrix, 0, mRotationMatrix, 0);
 
         // Draw triangle
-        mDiver.draw(scratch);
+        mDiver.draw(scratchDiver);
         // Draw Cavern
-        mCavern.draw(scratch);
+        mCavern.draw(scratchCavern);
     }
 
     public void onSurfaceChanged(GL10 unused, int width, int height) {
@@ -100,6 +123,15 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         // this projection matrix is applied to object coordinates
         // in the onDrawFrame() method
         Matrix.frustumM(mProjectionMatrix, 0, -ratio, ratio, -1, 1, 3, 7);
+    }
+
+    public void resetTimer() {
+        mInitialTime = SystemClock.uptimeMillis();
+    }
+
+    public void boostDiver() {
+        float boost = 60f;
+        mDiver.boostDiver(boost);
     }
 
     public static int loadShader(int type, String shaderCode){

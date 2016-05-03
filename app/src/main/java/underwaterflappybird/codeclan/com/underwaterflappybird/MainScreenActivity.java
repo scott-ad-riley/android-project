@@ -55,26 +55,28 @@ public class MainScreenActivity extends Activity {
 
             switch (e.getAction()) {
                 case MotionEvent.ACTION_DOWN:
-                    Log.d("WebGLLog", "X:" + x);
-                    Log.d("WebGLLog", "Y:" + y);
-                    Log.d("WebGLLog", "getHeight():" + getHeight());
-                    Log.d("WebGLLog", "getWidth():" + getWidth());
+//                    Log.d("WebGLLog", "X:" + x);
+//                    Log.d("WebGLLog", "Y:" + y);
+//                    Log.d("WebGLLog", "getHeight():" + getHeight());
+//                    Log.d("WebGLLog", "getWidth():" + getWidth());
                     // so we can capture a click handler
+                    mRenderer.boostDiver();
+//                    mRenderer.resetTimer();
                     requestRender();
-                case MotionEvent.ACTION_MOVE:
-
-                    float dx = x - mPreviousX;
-                    float dy = y - mPreviousY;
-
-                    // reverse direction of rotation above the mid-line
-                    if (y > getHeight() / 2) {
-                        dx = dx * -1 ;
-                    }
-
-                    // reverse direction of rotation to left of the mid-line
-                    if (x < getWidth() / 2) {
-                        dy = dy * -1 ;
-                    }
+//                case MotionEvent.ACTION_MOVE:
+//
+//                    float dx = x - mPreviousX;
+//                    float dy = y - mPreviousY;
+//
+//                    // reverse direction of rotation above the mid-line
+//                    if (y > getHeight() / 2) {
+//                        dx = dx * -1 ;
+//                    }
+//
+//                    // reverse direction of rotation to left of the mid-line
+//                    if (x < getWidth() / 2) {
+//                        dy = dy * -1 ;
+//                    }
 
 //                    mRenderer.setAngle(
 //                            mRenderer.getAngle() +

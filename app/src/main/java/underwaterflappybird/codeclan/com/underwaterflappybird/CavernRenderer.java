@@ -15,14 +15,15 @@ public class CavernRenderer {
     private final String vertexShaderCode = "uniform mat4 uMVPMatrix;attribute vec4 vPosition;void main() {  gl_Position = uMVPMatrix * vPosition;}";
     private final String fragmentShaderCode = "precision mediump float;uniform vec4 vColor;void main() { gl_FragColor = vColor;}";
 
-
-    private final float[][] mPanes;
+    private float[] topColor = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
+    private float[] bottomColor = { 0.23671875f, 0.26953125f, 0.22265625f, 1.0f };
+    private final float[][][] mPanes;
 
 //    private final ArrayList<float[]> mDiscarded;
 
 
     public CavernRenderer(Cavern cavern, int numberOfPanes) {
-        mPanes  = new float[numberOfPanes][];
+        mPanes  = new float[numberOfPanes][][];
         int vertexShader = MainScreenRenderer.loadShader(GLES20.GL_VERTEX_SHADER,
                 vertexShaderCode);
 
@@ -47,11 +48,11 @@ public class CavernRenderer {
     }
 
     public void draw(float[] mvpMatrix) {
-
-
         for (int i=0; i < mPanes.length; i++) {
-            CavernPaneRenderer cavernPaneRenderer = new CavernPaneRenderer(mPanes[i], mProgram);
-            cavernPaneRenderer.draw(mvpMatrix);
+            CavernPaneRenderer topCavernPaneRenderer = new CavernPaneRenderer(mPanes[i][0], mProgram, topColor);
+            topCavernPaneRenderer.draw(mvpMatrix);
+            CavernPaneRenderer bottomCavernPaneRenderer = new CavernPaneRenderer(mPanes[i][1], mProgram, bottomColor);
+            bottomCavernPaneRenderer.draw(mvpMatrix);
         }
     }
 

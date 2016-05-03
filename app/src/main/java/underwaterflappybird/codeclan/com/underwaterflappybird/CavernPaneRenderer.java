@@ -31,11 +31,12 @@ public class CavernPaneRenderer {
     private final int vertexStride = COORDS_PER_VERTEX * 4; // 4 bytes per vertex
 
     // Set color with red, green, blue and alpha (opacity) values
-    float color[] = { 0.63671875f, 0.76953125f, 0.22265625f, 1.0f };
+    private float[] mColor;
 
-    public CavernPaneRenderer(float[] position, int program) {
+    public CavernPaneRenderer(float[] position, int program, float[] color) {
         mPosition = position;
         mProgram = program;
+        mColor = color;
         ByteBuffer bb = ByteBuffer.allocateDirect(mPosition.length * 4);
         bb.order(ByteOrder.nativeOrder());
         vertexBuffer = bb.asFloatBuffer();
@@ -69,7 +70,7 @@ public class CavernPaneRenderer {
         mColorHandle = GLES20.glGetUniformLocation(mProgram, "vColor");
 
         // Set color for drawing the triangle
-        GLES20.glUniform4fv(mColorHandle, 1, color, 0);
+        GLES20.glUniform4fv(mColorHandle, 1, mColor, 0);
 
         // get handle to shape's transformation matrix
         mMVPMatrixHandle = GLES20.glGetUniformLocation(mProgram, "uMVPMatrix");
