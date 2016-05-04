@@ -1,9 +1,6 @@
 package underwaterflappybird.codeclan.com.underwaterflappybird;
 
 import android.opengl.GLES20;
-import android.util.Log;
-
-import java.util.ArrayList;
 
 /**
  * Created by user on 02/05/2016.
@@ -11,6 +8,9 @@ import java.util.ArrayList;
 public class CavernRenderer {
 
     private final int mProgram;
+    private final Cavern mCavern;
+    private final int mNumberOfPanes;
+    private float mLastPaneHeight;
 
     private final String vertexShaderCode = "uniform mat4 uMVPMatrix;attribute vec4 vPosition;void main() {  gl_Position = uMVPMatrix * vPosition;}";
     private final String fragmentShaderCode = "precision mediump float;uniform vec4 vColor;void main() { gl_FragColor = vColor;}";
@@ -22,8 +22,10 @@ public class CavernRenderer {
 //    private final ArrayList<float[]> mDiscarded;
 
 
-    public CavernRenderer(Cavern cavern, int numberOfPanes) {
-        mPanes  = new float[numberOfPanes][][];
+    public CavernRenderer(int numberOfPanes) {
+        mNumberOfPanes = numberOfPanes;
+        mPanes  = new float[mNumberOfPanes][][];
+        mCavern = new Cavern(3.64f / numberOfPanes);
         int vertexShader = MainScreenRenderer.loadShader(GLES20.GL_VERTEX_SHADER,
                 vertexShaderCode);
 
@@ -41,10 +43,13 @@ public class CavernRenderer {
 
         // creates OpenGL ES program executables
         GLES20.glLinkProgram(mProgram);
-
-        for (int i = 0; i < numberOfPanes; i++) {
-            mPanes[i] = cavern.generatePane();
+        mLastPaneHeight = 0.05f;
+        // not sure why i need to do this in reverse
+        for (int i = numberOfPanes - 1; i >= 0; i--) {
+            mPanes[i] = mCavern.generatePane(mLastPaneHeight);
+            mLastPaneHeight = mPanes[i][2][0];
         }
+        mLastPaneHeight = mPanes[0][2][0];
     }
 
     public void draw(float[] mvpMatrix) {
@@ -56,38 +61,78 @@ public class CavernRenderer {
         }
     }
 
+    public void appendNewPane() {
+        rotatePanes(1);
+//        Log.d("UFBLogPane", "last:" + positionToString(mPanes[mNumberOfPanes - 1]));
 
-    private static void rotate(int[] arr, int order) {
-        if (arr == null || arr.length==0 || order < 0) {
+//        for (int x = 0; x <= mPanes.length-1; x++){
+//            mPanes[(x+1) % mPanes.length ] = mPanes[x];
+//        }
+        float [][] newPane = mCavern.generatePane(mLastPaneHeight);
+        mPanes[mNumberOfPanes - 1] = newPane;
+        mLastPaneHeight = newPane[2][0];
+    }
+
+    private void rotatePanes(int order) {
+        if (mPanes == null || mPanes.length==0 || order < 0) {
             throw new IllegalArgumentException("Illegal argument!");
         }
 
-        if(order > arr.length){
-            order = order %arr.length;
+        if(order > mPanes.length){
+            order = order %mPanes.length;
         }
 
         //length of first part
-        int a = arr.length - order;
+        int a = mPanes.length - order;
 
-        reverse(arr, 0, a-1);
-        reverse(arr, a, arr.length-1);
-        reverse(arr, 0, arr.length-1);
+        reverse(0, a-1);
+        reverse(a, mPanes.length-1);
+        reverse(0, mPanes.length-1);
 
+        ///
+//        if (mPanes == null || order < 0) {
+//            throw new IllegalArgumentException("Illegal argument!");
+//        }
+//
+//        for (int i = 0; i < order; i++) {
+//            for (int j = mPanes.length - 1; j > 0; j--) {
+//                float[][] temp = mPanes[j];
+//                mPanes[j] = mPanes[j - 1];
+//                mPanes[j - 1] = temp;
+//            }
+//        }
+        ///
     }
 
-    private static void reverse(int[] arr, int left, int right){
-        if(arr == null || arr.length == 1)
+    private void reverse(int left, int right){
+        if(mPanes == null || mPanes.length == 1)
             return;
 
         while(left < right){
-            int temp = arr[left];
-            arr[left] = arr[right];
-            arr[right] = temp;
+            float[][] temp = mPanes[left];
+            mPanes[left] = mPanes[right];
+            mPanes[right] = temp;
             left++;
             right--;
         }
+
+    }
+
+    private String positionToString(float[][] position) {
+        StringBuffer sb = new StringBuffer();
+        for (int i = 0; i < position[0].length; i++) {
+            sb.append(position[0][i] + " ");
+        }
+        return sb.toString();
     }
 
 
+    public float getPaneWidth() {
+        return mCavern.getPaneWidth();
+    }
 
+
+    public Cavern getCavern() {
+        return mCavern;
+    }
 }

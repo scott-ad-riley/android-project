@@ -2,41 +2,80 @@ package underwaterflappybird.codeclan.com.underwaterflappybird;
 
 import android.util.Log;
 
-import java.util.Random;
-
 /**
  * Created by user on 02/05/2016.
  */
 public class Cavern {
-    private float mCurrentTop;
-    private float mCurrentBottom;
+//    private float mCurrentTop;
+//    private float mCurrentBottom;
+//    private float mMaxTop;
     private float mCurrentXCoord;
-    private float mMaxTop;
-    private float mMaxBottom;
-    private float mWidth;
+    private final float mWidth;
+
+    private float mRoughness;
+
+    private final int mScaler = 1;
+    private final float mMiddlePanel = 1.1f;
+
 
     // when we want to be able to generate panes in the cavern
     // we need to setup with a default X of 0
-    // we also need to accept a default per pane (based on how many we want to draw)
-    public Cavern(float initialTop, float initialBottom) {
-        mWidth = 0.02f;
-        mCurrentTop = initialTop;
-        mCurrentBottom = initialBottom;
-        mCurrentXCoord = 1.82f; // this needs to be the leftmost value for the window
-        mMaxBottom = 50 / 100;
+    public Cavern(float paneWidth) {
+        mWidth = paneWidth;
+        mCurrentXCoord = 1.82f;
+        mRoughness = 0.15f;
     }
 
-    public float[][] generatePane() {
-        float[][] result = new float[2][12];
-        int min = 1;
-        int max = 50;
-        float height = (float) randInt(min, max) / 100;
+    public Cavern(int numberOfPanes, float roughness) {
+        this(numberOfPanes / 1.82f);
+        mRoughness = roughness;
+    }
 
+
+    public float generateRandomValue(float prevValue) {
+        // get a random number to determine direction
+        // if it's above 0.5, we go up, if below, we go down
+        float direction = (float) Math.random();
+
+        // get a random number to determine distance
+        float distance = (float) Math.random();
+
+        // this gets reduced to the range that roughness will allow
+        float result = distance * mRoughness;
+
+        // now we check it isn't out of the bounds of the view
+        if (direction > 0.5f) {
+            result = prevValue + result;
+        } else if (direction < 0.5f) {
+            result = prevValue - result;
+        }
+        if (result > 0.9f) {
+            result = 0.9f;
+        }
+        if (result < 0.1f) {
+            result = 0.1f;
+        }
+        return result;
+    }
+
+    public float[][] generatePane(float prevHeight) {
+        float[][] result = new float[3][12];
+        float value = generateRandomValue(prevHeight);
+//        Log.d("UFBLogValue", "" + value);
+//        float value = (float) Math.random();
+//        value *= 10;
+//        if (value > prevHeight + 0.2) value = prevHeight;
+//        if (value < prevHeight - 0.2) value = 0;
+//
+//        int min = ((int) prevHeight * 100) - 1;
+//        int max = ((int) prevHeight * 100) + 1;
+//        Log.d("UFBLogHeights", "min:" + min + " max:" + max);
+//        float height = (float) randInt(min, max) / 100;
         result[0][0] = mCurrentXCoord; // bottom left X
-        result[0][1] = 1.0f - height; // bottom left Y
+        result[0][1] = 1.0f - value; // bottom left Y
         result[0][2] = 0.0f;
         result[0][3] = mCurrentXCoord - mWidth; // bottom right X
-        result[0][4] = 1.0f - height; // bottom right Y
+        result[0][4] = 1.0f - value; // bottom right Y
         result[0][5] = 0.0f;
         result[0][6] = mCurrentXCoord - mWidth; // top right X
         result[0][7] = 1.0f; // top right Y
@@ -52,26 +91,19 @@ public class Cavern {
         result[1][4] = -1.0f; // bottom right Y
         result[1][5] = 0.0f;
         result[1][6] = mCurrentXCoord - mWidth; // top right X
-        result[1][7] = -1.0f + (mMaxBottom + height); // top right Y
+        result[1][7] = 1.0f - (mMiddlePanel + value); // top right Y
         result[1][8] = 0.0f;
         result[1][9] = mCurrentXCoord; // top left X
-        result[1][10] = -1.0f + (mMaxBottom + height); // top left Y
+        result[1][10] = 1.0f - (mMiddlePanel + value); // top left Y
         result[1][11] = 0.0f;
 
         mCurrentXCoord -= mWidth;
-
+        result[2][0] = value;
         return result;
     }
 
-    private int randInt(int min, int max) {
-        Random rand;
-
-        rand = new Random();
-        // nextInt is normally exclusive of the top value,
-        // so add 1 to make it inclusive
-        int randomNum = rand.nextInt((max - min) + 1) + min;
-
-        return randomNum;
+    public float getPaneWidth() {
+        return mWidth;
     }
 }
 

@@ -31,28 +31,34 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
     private int mScreenWidth = 800;
 
     public volatile float mTranslateValue;
-    public float mInitialTime;
+    private float mInitialTime;
 
-    public float mLastFrameTime;
+    private float mLastFrameTime;
 
-    public float mDiverDistance;
+    private float mDiverDistance;
+
+    private float mCumulativePaneWidth;
+    private int mPaneCounter;
 
     float mInitialDiverCoords[] = {
             -0.05f,  0.05f, 0.0f,  // top right x, y, z
             -0.05f, -0.05f, 0.0f,  // bottom right x, y, z
             0.05f, -0.05f, 0.0f,  // bottom left x, y, z
             0.05f,  0.05f, 0.0f };  // top left x, y, z
+    private float mPaneWidth;
 
 
     public void onSurfaceCreated(GL10 unused, EGLConfig config) {
         // Set the background frame color
         GLES20.glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
         mDiver = new DiverRenderer(new Diver(0), mInitialDiverCoords);
-        mCavern = new CavernRenderer(new Cavern(0.0f, 0.0f), 180);
+        mCavern = new CavernRenderer(150);
         GLES20.glViewport(0, 0, mScreenWidth, mScreenHeight);
         mInitialTime = SystemClock.uptimeMillis();
         mLastFrameTime = mInitialTime;
         mDiverDistance = 0;
+        mPaneWidth = mCavern.getPaneWidth();
+        mCumulativePaneWidth = 0;
     }
 
     public void onDrawFrame(GL10 unused) {
@@ -61,8 +67,6 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         float newTime = SystemClock.uptimeMillis();
         float frameTime = newTime - mLastFrameTime;
         float totalTime = newTime - mInitialTime;
-//        Log.d("UFBLog1", "" + frameTime);
-//        Log.d("UFBLog2", "" + mLastFrameTime);
         // Redraw background color
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT);
         // Set the camera position (View matrix)
@@ -79,15 +83,21 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         // changing arg 11: nothing
         Matrix.setLookAtM(mCavernViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
         Matrix.setLookAtM(mDiverViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
-
         mLastFrameTime = newTime;
 
         mTranslateValue = 0.0006f * ((int) totalTime);
+
+        if (mTranslateValue > mCumulativePaneWidth) {
+            mPaneCounter++;
+//            Log.d("UFBLog", "new pane" + mPaneCounter);
+            mCavern.appendNewPane();
+            mCumulativePaneWidth += mPaneWidth;
+        }
+
         Matrix.translateM(mCavernViewMatrix, 0, mTranslateValue, 0, 0); // translation to the left
         // I need to call .move() on my diver
         float distance = mDiver.moveDiver(frameTime / 1000) / - 100;
         mDiverDistance += distance;
-        // wdawdawd
         Matrix.translateM(mDiverViewMatrix, 0, 0, mDiverDistance, 0); // translation downward
 
         // Calculate the projection and view transformation
