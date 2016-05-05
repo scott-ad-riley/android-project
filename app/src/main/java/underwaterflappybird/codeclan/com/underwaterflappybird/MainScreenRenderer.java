@@ -38,7 +38,10 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
     private float mDiverDistance;
 
     private float mCumulativePaneWidth;
-    private int mPaneCounter;
+
+    private float mDifficultyScaler = 0.0006f;
+
+    private int mCumulativeDifficultyTime = 100;
 
     float mInitialDiverCoords[] = {
             -0.05f,  0.05f, 0.0f,  // top right x, y, z
@@ -85,17 +88,18 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         Matrix.setLookAtM(mDiverViewMatrix, 0, 0, 0, -3, 0f, 0f, 0f, 0f, 1.0f, 0.0f);
         mLastFrameTime = newTime;
 
-        mTranslateValue = 0.0006f * ((int) totalTime);
-
+        mTranslateValue = (float) Math.pow(mDifficultyScaler * 1000, 2) * ((int) totalTime) / 1000;
+//        uncomment for the scaling difficulty (not 100% working)
+//        if (totalTime > mCumulativeDifficultyTime) {
+//            mDifficultyScaler += 0.000002;
+//            mCumulativeDifficultyTime += 100;
+//        }
         if (mTranslateValue > mCumulativePaneWidth) {
-            mPaneCounter++;
-//            Log.d("UFBLog", "new pane" + mPaneCounter);
             mCavern.appendNewPane();
             mCumulativePaneWidth += mPaneWidth;
         }
-
         Matrix.translateM(mCavernViewMatrix, 0, mTranslateValue, 0, 0); // translation to the left
-        // I need to call .move() on my diver
+
         float distance = mDiver.moveDiver(frameTime / 1000) / - 100;
         mDiverDistance += distance;
         Matrix.translateM(mDiverViewMatrix, 0, 0, mDiverDistance, 0); // translation downward
@@ -104,14 +108,7 @@ public class MainScreenRenderer implements GLSurfaceView.Renderer {
         Matrix.multiplyMM(mMVPCavernMatrix, 0, mProjectionMatrix, 0, mCavernViewMatrix, 0);
         Matrix.multiplyMM(mMVPDiverMatrix, 0, mProjectionMatrix, 0, mDiverViewMatrix, 0);
 
-
-        // Create a rotation transformation for the triangle
-        // the following two lines generate an angle from the system clock
-
-//        mAngle = 0.090f * ((int) time);
         Matrix.setRotateM(mRotationMatrix, 0, 0, 0, 0, -1.0f);
-
-
 
         // Combine the rotation matrix with the projection and camera view
         // Note that the mMVPMatrix factor *must be first* in order
